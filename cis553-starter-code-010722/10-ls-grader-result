@@ -1,0 +1,8 @@
+#TEST1 1 LS DUMP NEIGHBORS is wrong, with 1 error
+
+error 1: entry_count 0 is less than entry_total 2
+
+#TEST2 1 LS DUMP ROUTES is wrong, with 1 error
+
+error 1: entry_count 0 is less than entry_total 9
+

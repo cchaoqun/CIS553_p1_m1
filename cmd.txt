@@ -1,0 +1,12 @@
+./build/scratch/simulator-main --routing=LS --scenario=scratch/scenarios/10-ls.sce  --inet-topo=scratch/topologies/10.topo  --result-check=scratch/results/10-ls.output  --graderResult=10-ls-grader-result
+export LD_LIBRARY_PATH=./build/lib/
+
+
+docker-compose build cis553 
+docker-compose run --rm cis553
+cd cis553-starter-code-012222/
+chmod +x waf
+./waf configure
+./waf 
+
+./waf --run "simulator-main --routing=LS --scenario=scratch/scenarios/10-ls.sce --inet-topo=scratch/topologies/10.topo --result-check=scratch/results/10-ls.output"
