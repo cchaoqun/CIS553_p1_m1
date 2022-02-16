@@ -37,6 +37,8 @@ class DVMessage : public Header
       {
         PING_REQ = 1,
         PING_RSP = 2,
+        HELLO_REQ,
+        HELLO_RSP,
         // Define extra message types when needed       
       };
 
@@ -128,12 +130,35 @@ class DVMessage : public Header
         std::string pingMessage;
       };
 
+    struct HelloReq
+      {
+      void Print(std::ostream& os) const;
+      uint32_t GetSerializedSize(void) const;
+      void Serialize(Buffer::Iterator& start) const;
+      uint32_t Deserialize(Buffer::Iterator& start);
+      // Payload
+      Ipv4Address destinationAddress;
+      std::string helloMessage;
+      };
+
+    struct HelloRsp
+      {
+      void Print(std::ostream& os) const;
+      uint32_t GetSerializedSize(void) const;
+      void Serialize(Buffer::Iterator& start) const;
+      uint32_t Deserialize(Buffer::Iterator& start);
+      // Payload
+      Ipv4Address destinationAddress;
+      std::string helloMessage;
+      };
 
   private:
     struct
       {
         PingReq pingReq;
         PingRsp pingRsp;
+        HelloReq helloReq;
+        HelloRsp helloRsp;
       } m_message;
     
   public:
@@ -158,6 +183,25 @@ class DVMessage : public Header
      *  \param message Payload String
      */
     void SetPingRsp (Ipv4Address destinationAddress, std::string message);
+
+    HelloReq GetHelloReq();
+
+    /**
+     *  \brief Sets PingReq message params
+     *  \param message Payload String
+     */
+
+    void SetHelloReq(std::string message);
+
+    /**
+     * \returns PingRsp Struct
+     */
+    HelloRsp GetHelloRsp();
+    /**
+     *  \brief Sets PingRsp message params
+     *  \param message Payload String
+     */
+    void SetHelloRsp(Ipv4Address destinationAddress, std::string message);
 
 }; // class DVMessage
 

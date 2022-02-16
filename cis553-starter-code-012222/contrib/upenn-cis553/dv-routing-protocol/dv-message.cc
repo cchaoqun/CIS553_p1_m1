@@ -68,6 +68,12 @@ DVMessage::GetSerializedSize (void) const
       case PING_RSP:
         size += m_message.pingRsp.GetSerializedSize ();
         break;
+      case HELLO_REQ:
+        size += m_message.helloReq.GetSerializedSize ();
+        break;
+      case HELLO_RSP:
+        size += m_message.helloRsp.GetSerializedSize ();
+        break;
       default:
         NS_ASSERT (false);
     }
@@ -92,6 +98,12 @@ DVMessage::Print (std::ostream &os) const
       case PING_RSP:
         m_message.pingRsp.Print (os);
         break;
+      case HELLO_REQ:
+        m_message.helloReq.Print (os);
+        break;
+      case HELLO_RSP:
+        m_message.helloRsp.Print (os);
+        break;
       default:
         break;  
     }
@@ -114,6 +126,12 @@ DVMessage::Serialize (Buffer::Iterator start) const
         break;
       case PING_RSP:
         m_message.pingRsp.Serialize (i);
+        break;
+      case HELLO_REQ:
+        m_message.helloReq.Serialize (i);
+        break;
+      case HELLO_RSP:
+        m_message.helloRsp.Serialize (i);
         break;
       default:
         NS_ASSERT (false);   
@@ -139,6 +157,12 @@ DVMessage::Deserialize (Buffer::Iterator start)
         break;
       case PING_RSP:
         size += m_message.pingRsp.Deserialize (i);
+        break;
+      case HELLO_REQ:
+        size += m_message.helloReq.Deserialize (i);
+        break;
+      case HELLO_RSP:
+        size += m_message.helloRsp.Deserialize (i);
         break;
       default:
         NS_ASSERT (false);
@@ -261,9 +285,112 @@ DVMessage::GetPingRsp ()
 }
 
 
-//
-//
-//
+uint32_t
+DVMessage::HelloReq::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = IPV4_ADDRESS_SIZE + sizeof (uint16_t) + helloMessage.length ();
+  return size;
+}
+
+void
+DVMessage::HelloReq::Print (std::ostream &os) const
+{
+  os << "HelloReq:: Message: " << helloMessage << "\n";
+}
+
+void
+DVMessage::HelloReq::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteHtonU32 (destinationAddress.Get ());
+  start.WriteU16 (helloMessage.length ());
+  start.Write ((uint8_t *)(const_cast<char *> (helloMessage.c_str ())), helloMessage.length ());
+}
+
+uint32_t
+DVMessage::HelloReq::Deserialize (Buffer::Iterator &start)
+{
+  destinationAddress = Ipv4Address (start.ReadNtohU32 ());
+  helloMessage = "Hello";
+  return HelloReq::GetSerializedSize ();
+}
+
+void
+DVMessage::SetHelloReq (std::string helloMessage)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = HELLO_REQ;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == HELLO_REQ);
+    }
+  m_message.helloReq.helloMessage = helloMessage;
+}
+
+DVMessage::HelloReq
+DVMessage::GetHelloReq ()
+{
+  return m_message.helloReq;
+}
+
+// TODO: You can put your own Rsp/Req related function here
+
+/* HELLO_RSP */
+
+uint32_t
+DVMessage::HelloRsp::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = IPV4_ADDRESS_SIZE + sizeof (uint16_t) + helloMessage.length ();
+  return size;
+}
+
+void
+DVMessage::HelloRsp::Print (std::ostream &os) const
+{
+  os << "HelloRsp:: Message: " << helloMessage << "\n";
+}
+
+void
+DVMessage::HelloRsp::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteHtonU32 (destinationAddress.Get ());
+  start.WriteU16 (helloMessage.length ());
+  start.Write ((uint8_t *)(const_cast<char *> (helloMessage.c_str ())), helloMessage.length ());
+}
+
+uint32_t
+DVMessage::HelloRsp::Deserialize (Buffer::Iterator &start)
+{
+
+  destinationAddress = Ipv4Address (start.ReadNtohU32 ());
+  helloMessage = "Hello reply";
+  return HelloRsp::GetSerializedSize ();
+}
+
+void
+DVMessage::SetHelloRsp (Ipv4Address destinationAddress, std::string helloMessage)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = HELLO_RSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == HELLO_RSP);
+    }
+  m_message.helloRsp.destinationAddress = destinationAddress;
+  m_message.helloRsp.helloMessage = helloMessage;
+}
+
+DVMessage::HelloRsp
+DVMessage::GetHelloRsp ()
+{
+  return m_message.helloRsp;
+}
+
 
 void
 DVMessage::SetMessageType (MessageType messageType)

@@ -38,6 +38,9 @@ class LSMessage : public Header
       {
       PING_REQ,
       PING_RSP,
+      HELLO_REQ,
+      HELLO_RSP,
+      LSP,
       };
 
     LSMessage(LSMessage::MessageType messageType, uint32_t sequenceNumber, uint8_t ttl, Ipv4Address originatorAddress);
@@ -127,11 +130,47 @@ class LSMessage : public Header
       std::string pingMessage;
       };
 
+    struct HelloReq
+      {
+      void Print(std::ostream& os) const;
+      uint32_t GetSerializedSize(void) const;
+      void Serialize(Buffer::Iterator& start) const;
+      uint32_t Deserialize(Buffer::Iterator& start);
+      // Payload
+      Ipv4Address destinationAddress;
+      std::string helloMessage;
+      };
+
+    struct HelloRsp
+      {
+      void Print(std::ostream& os) const;
+      uint32_t GetSerializedSize(void) const;
+      void Serialize(Buffer::Iterator& start) const;
+      uint32_t Deserialize(Buffer::Iterator& start);
+      // Payload
+      Ipv4Address destinationAddress;
+      std::string helloMessage;
+      };
+
+    struct Lsp
+      {
+      void Print(std::ostream& os) const;
+      uint32_t GetSerializedSize(void) const;
+      void Serialize(Buffer::Iterator& start) const;
+      uint32_t Deserialize(Buffer::Iterator& start);
+      // Payload
+      std::string NodeNum;
+      std::map<uint32_t, uint32_t> neighbors;
+      };
+
   private:
     struct
       {
       PingReq pingReq;
       PingRsp pingRsp;
+      HelloReq helloReq;
+      HelloRsp helloRsp;
+      Lsp lsp;
       } m_message;
 
   public:
@@ -156,6 +195,33 @@ class LSMessage : public Header
      *  \param message Payload String
      */
     void SetPingRsp(Ipv4Address destinationAddress, std::string message);
+
+    HelloReq GetHelloReq();
+
+    /**
+     *  \brief Sets PingReq message params
+     *  \param message Payload String
+     */
+
+    void SetHelloReq(std::string message);
+
+    /**
+     * \returns PingRsp Struct
+     */
+    HelloRsp GetHelloRsp();
+    /**
+     *  \brief Sets PingRsp message params
+     *  \param message Payload String
+     */
+    void SetHelloRsp(Ipv4Address destinationAddress, std::string message);
+
+    HelloRsp GetLsp();
+    /**
+     *  \brief Sets PingRsp message params
+     *  \param message Payload String
+     */
+    void SetLsp(Ipv4Address destinationAddress, std::string message);
+
   }; // class LSMessage
 
 static inline std::ostream&

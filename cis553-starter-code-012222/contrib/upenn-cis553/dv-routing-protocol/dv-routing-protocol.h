@@ -40,7 +40,12 @@ class DVRoutingProtocol : public PennRoutingProtocol
 {
 public:
   static TypeId GetTypeId(void);
-
+  struct NeighborTableEntry
+    {
+    Ipv4Address neighborAddr;
+    Ipv4Address interfaceAddr;
+    int timestamp;
+    };
   DVRoutingProtocol();
   virtual ~DVRoutingProtocol();
   /**
@@ -89,6 +94,8 @@ public:
   void RecvDVMessage(Ptr<Socket> socket);
   void ProcessPingReq(DVMessage DVMessage);
   void ProcessPingRsp(DVMessage DVMessage);
+  void ProcessHelloReq(DVMessage dvMessage);
+  void ProcessHelloRsp(DVMessage dvMessage,Ipv4Address interface);
 
   // Periodic Audit
   void AuditPings();
@@ -195,6 +202,7 @@ private:
      * \param packet Packet to be sent.
      */
   void BroadcastPacket(Ptr<Packet> packet);
+  void HelloBroadcastPacket();
   /**
      * \brief Returns the main IP address of a node in Inet topology.
      *
@@ -241,8 +249,10 @@ private:
   std::map<Ipv4Address, uint32_t> m_addressNodeMap;
   // Timers
   Timer m_auditPingsTimer;
+  Timer m_helloTimer;
   // Ping tracker
   std::map<uint32_t, Ptr<PingRequest>> m_pingTracker;
+  std::map<std::string, DVRoutingProtocol::NeighborTableEntry> m_neighbors;
 };
 
 #endif

@@ -40,7 +40,12 @@ class LSRoutingProtocol : public PennRoutingProtocol
 {
 public:
   static TypeId GetTypeId(void);
-
+  struct NeighborTableEntry
+    {
+    Ipv4Address neighborAddr;
+    Ipv4Address interfaceAddr;
+    int timestamp;
+    };
   LSRoutingProtocol();
   virtual ~LSRoutingProtocol();
 
@@ -91,6 +96,8 @@ public:
   void RecvLSMessage(Ptr<Socket> socket);
   void ProcessPingReq(LSMessage lsMessage);
   void ProcessPingRsp(LSMessage lsMessage);
+  void ProcessHelloReq(LSMessage lsMessage);
+  void ProcessHelloRsp(LSMessage lsMessage,Ipv4Address interface);
 
   // Periodic Audit
   void AuditPings();
@@ -205,6 +212,7 @@ private:
    * \param packet Packet to be sent.
    */
   void BroadcastPacket(Ptr<Packet> packet);
+  void HelloBroadcastPacket();
 
   /**
    * \brief Returns the main IP address of a node in Inet topology.
@@ -256,8 +264,10 @@ private:
 
   // Timers
   Timer m_auditPingsTimer;
+  Timer m_helloTimer;
 
   // Ping tracker
   std::map<uint32_t, Ptr<PingRequest>> m_pingTracker;
+  std::map<std::string, LSRoutingProtocol::NeighborTableEntry> m_neighbors;
 };
 #endif

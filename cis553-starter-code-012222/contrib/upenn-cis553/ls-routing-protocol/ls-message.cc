@@ -61,6 +61,15 @@ LSMessage::GetSerializedSize (void) const
     case PING_RSP:
       size += m_message.pingRsp.GetSerializedSize ();
       break;
+    case HELLO_REQ:
+      size += m_message.helloReq.GetSerializedSize ();
+      break;
+    case HELLO_RSP:
+      size += m_message.helloRsp.GetSerializedSize ();
+      break;
+    case LSP:
+      size += m_message.lsp.GetSerializedSize ();
+      break;
     default:
       NS_ASSERT (false);
     }
@@ -85,6 +94,15 @@ LSMessage::Print (std::ostream &os) const
     case PING_RSP:
       m_message.pingRsp.Print (os);
       break;
+    case HELLO_REQ:
+      m_message.helloReq.Print (os);
+      break;
+    case HELLO_RSP:
+      m_message.helloRsp.Print (os);
+      break;
+    case LSP:
+      m_message.lsp.Print (os);
+      break;
     default:
       break;
     }
@@ -107,6 +125,15 @@ LSMessage::Serialize (Buffer::Iterator start) const
       break;
     case PING_RSP:
       m_message.pingRsp.Serialize (i);
+      break;
+    case HELLO_REQ:
+      m_message.helloReq.Serialize (i);
+      break;
+    case HELLO_RSP:
+      m_message.helloRsp.Serialize (i);
+      break;
+    case LSP:
+      m_message.lsp.Serialize (i);
       break;
     default:
       NS_ASSERT (false);
@@ -132,6 +159,15 @@ LSMessage::Deserialize (Buffer::Iterator start)
       break;
     case PING_RSP:
       size += m_message.pingRsp.Deserialize (i);
+      break;
+    case HELLO_REQ:
+      size += m_message.helloReq.Deserialize (i);
+      break;
+    case HELLO_RSP:
+      size += m_message.helloRsp.Deserialize (i);
+      break;
+    case LSP:
+      size += m_message.lsp.Deserialize (i);
       break;
     default:
       NS_ASSERT (false);
@@ -253,7 +289,184 @@ LSMessage::GetPingRsp ()
   return m_message.pingRsp;
 }
 
+
+
+
 // TODO: You can put your own Rsp/Req related function here
+/* HELLO_REQ */
+
+uint32_t
+LSMessage::HelloReq::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = IPV4_ADDRESS_SIZE + sizeof (uint16_t) + helloMessage.length ();
+  return size;
+}
+
+void
+LSMessage::HelloReq::Print (std::ostream &os) const
+{
+  os << "HelloReq:: Message: " << helloMessage << "\n";
+}
+
+void
+LSMessage::HelloReq::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteHtonU32 (destinationAddress.Get ());
+  start.WriteU16 (helloMessage.length ());
+  start.Write ((uint8_t *)(const_cast<char *> (helloMessage.c_str ())), helloMessage.length ());
+}
+
+uint32_t
+LSMessage::HelloReq::Deserialize (Buffer::Iterator &start)
+{
+  destinationAddress = Ipv4Address (start.ReadNtohU32 ());
+  helloMessage = "Hello";
+  return HelloReq::GetSerializedSize ();
+}
+
+void
+LSMessage::SetHelloReq (std::string helloMessage)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = HELLO_REQ;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == HELLO_REQ);
+    }
+  m_message.helloReq.helloMessage = helloMessage;
+}
+
+LSMessage::HelloReq
+LSMessage::GetHelloReq ()
+{
+  return m_message.helloReq;
+}
+
+// TODO: You can put your own Rsp/Req related function here
+
+/* HELLO_RSP */
+
+uint32_t
+LSMessage::HelloRsp::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = IPV4_ADDRESS_SIZE + sizeof (uint16_t) + helloMessage.length ();
+  return size;
+}
+
+void
+LSMessage::HelloRsp::Print (std::ostream &os) const
+{
+  os << "HelloRsp:: Message: " << helloMessage << "\n";
+}
+
+void
+LSMessage::HelloRsp::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteHtonU32 (destinationAddress.Get ());
+  start.WriteU16 (helloMessage.length ());
+  start.Write ((uint8_t *)(const_cast<char *> (helloMessage.c_str ())), helloMessage.length ());
+}
+
+uint32_t
+LSMessage::HelloRsp::Deserialize (Buffer::Iterator &start)
+{
+
+  destinationAddress = Ipv4Address (start.ReadNtohU32 ());
+  helloMessage = "Hello reply";
+  return HelloRsp::GetSerializedSize ();
+}
+
+void
+LSMessage::SetHelloRsp (Ipv4Address destinationAddress, std::string helloMessage)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = HELLO_RSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == HELLO_RSP);
+    }
+  m_message.helloRsp.destinationAddress = destinationAddress;
+  m_message.helloRsp.helloMessage = helloMessage;
+}
+
+LSMessage::HelloRsp
+LSMessage::GetHelloRsp ()
+{
+  return m_message.helloRsp;
+}
+
+
+
+/* LSP */
+
+uint32_t
+LSMessage::Lsp::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = sizeof (uint16_t) + NodeNum.length () + sizeof (uint8_t);
+  return size;
+}
+
+void
+LSMessage::Lsp::Print (std::ostream &os) const
+{
+  os << "Lsp:: Message: " << NodeNum << "\n";
+}
+
+void
+LSMessage::Lsp::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteU16 (NodeNum.length ());
+  start.Write ((uint8_t *)(const_cast<char *> (NodeNum.c_str ())), NodeNum.length ());
+  start.WriteU16 (neighbors.size ());
+  for (std::map<uint32_t, uint32_t>::const_iterator i = neighbors.begin(); i != neighbors.end();i++){
+    start.writeU32(i->first,i->second);
+  }
+}
+
+uint32_t
+LSMessage::Lsp::Deserialize (Buffer::Iterator &start)
+{
+  uint16_t length = start.ReadU16 ();
+  char *str = (char *)malloc (length);
+  start.Read ((uint8_t *)str, length);
+  NodeNum = std::string (str, length);
+  free (str);
+  
+  uint16_t mapsize = start.ReadU16 ();
+  for (uint32_t i = 0; i < mapsize; i++){
+    neighbors.insert(std::pair(start.ReadU32(),start.ReadU32()));
+  }
+  return Lsp::GetSerializedSize ();
+}
+
+void
+LSMessage::Lsp (std::string NodeNum, std::map<uint32_t, uint32_t> neighbors)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = LSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == LSP);
+    }
+  m_message.lsp.NodeNum = NodeNum;
+  m_message.lsp.neighbors = neighbors;
+}
+
+LSMessage::Lsp
+LSMessage::GetLsp ()
+{
+  return m_message.lsp;
+}
+
 
 void
 LSMessage::SetMessageType (MessageType messageType)
